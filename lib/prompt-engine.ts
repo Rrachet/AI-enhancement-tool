@@ -1,5 +1,7 @@
-export type TargetModel = "ChatGPT" | "Gemini" | "Claude" | "Cursor" | "Midjourney" | "Other";
-export type Goal = "Best answer" | "Professional output" | "Code" | "Research" | "Image" | "Custom";
+import { aiProviderConfigured, enhanceWithAI } from "./ai/provider";
+import type { Goal, TargetModel } from "./ai/types";
+
+export type { Goal, TargetModel } from "./ai/types";
 
 export interface PromptAnalysis {
   intent: string;
@@ -16,6 +18,7 @@ export interface PromptAnalysis {
 export interface EnhancementResult {
   enhancedPrompt: string;
   analysis: PromptAnalysis;
+  provider: "ai" | "deterministic";
 }
 
 const patterns: Array<{ type: string; terms: string[] }> = [
@@ -53,9 +56,7 @@ function detectTask(input: string, goal: Goal): string {
 }
 
 function detectMissing(input: string, taskType: string, goal: Goal): string[] {
-  const text = normalized(input);
   const missing: string[] = [];
-
   if (input.length < 80) missing.push("Useful context or background");
   if (!/(for|target|audience|user|customer|reader|developer)/i.test(input)) missing.push("Target audience or user");
   if (!/(must|should|avoid|without|only|constraint|require)/i.test(input)) missing.push("Important constraints");
@@ -63,60 +64,62 @@ function detectMissing(input: string, taskType: string, goal: Goal): string[] {
   if (taskType === "Code generation" && !/(react|next|node|python|java|typescript|javascript|css|api|database)/i.test(input)) missing.push("Technology or implementation context");
   if (taskType === "Research" && !/(source|citation|date|period|country|market|scope)/i.test(input)) missing.push("Research scope or source expectations");
   if (goal === "Image" && !/(style|lighting|composition|camera|aspect|mood|color)/i.test(input)) missing.push("Visual direction");
-
   return [...new Set(missing)].slice(0, 5);
 }
 
-function buildObjective(input: string, goal: Goal) {
-  const goalText = goal === "Best answer" ? "produce the most useful and accurate result" : `produce a high-quality ${goal.toLowerCase()} result`;
-  return `Use the user's request as the source of truth and ${goalText}, while preserving the original intent.`;
-}
-
-export function enhancePrompt(input: string, model: TargetModel, goal: Goal): EnhancementResult {
+function buildDeterministic(input: string, model: TargetModel, goal: Goal): EnhancementResult {
   const taskType = detectTask(input, goal);
   const missing = detectMissing(input, taskType, goal);
-  const context = input.length > 80 ? ["Use all relevant details contained in the original request."] : [];
-  const constraints = ["Do not invent important facts, requirements, or background.", "Preserve the user's intended outcome."];
+  const objective = goal === "Best answer" ? "Produce the most useful and accurate result possible." : `Optimize the result for ${goal.toLowerCase()}.`;
   const changes = ["Clarified the objective", "Added explicit execution instructions", "Added ambiguity protection", "Adapted guidance for the selected model"];
-
   if (missing.length) changes.push(`Flagged ${missing.length} missing context item${missing.length === 1 ? "" : "s"}`);
-
-  const modelLines = modelGuidance[model];
-  const clarification = missing.length
-    ? `\nMissing context to consider:\n${missing.map((item) => `- ${item}`).join("\n")}\nIf any missing item materially affects the result, ask a concise clarification question before proceeding. Otherwise, make only safe assumptions and state them.\n`
-    : "";
 
   const enhancedPrompt = [
     `Task: ${taskType}`,
-    `\nObjective:\n${buildObjective(input.trim(), goal)}`,
+    `\nObjective:\n${objective}`,
     `\nUser request:\n${input.trim()}`,
-    context.length ? `\nContext:\n${context.map((item) => `- ${item}`).join("\n")}` : "",
-    `\nInstructions:\n${modelLines.map((item) => `- ${item}`).join("\n")}`,
-    `- ${constraints[0]}`,
-    `- ${constraints[1]}`,
-    `- Prioritize accuracy, relevance, and specificity over unnecessary length.`,
-    `- Follow the requested output format exactly when one is provided.`,
-    clarification,
-    `\nQuality check:\nBefore responding, verify that the objective, constraints, and requested deliverable are all addressed.`,
+    `\nInstructions:\n${modelGuidance[model].map((item) => `- ${item}`).join("\n")}`,
+    "- Do not invent important facts, requirements, or background.",
+    "- Preserve the user's intended outcome.",
+    "- Prioritize accuracy, relevance, and specificity over unnecessary length.",
+    missing.length ? `\nMissing context to consider:\n${missing.map((item) => `- ${item}`).join("\n")}` : "",
+    "\nQuality check:\nVerify that the objective, constraints, and requested deliverable are addressed before responding.",
   ].filter(Boolean).join("\n");
 
-  const completeness = Math.min(100, 45 + Math.min(input.length / 5, 25) + (missing.length === 0 ? 25 : 8));
-  const modelFit = model === "Other" ? 82 : 94;
-  const score = Math.round((completeness * 0.45) + (modelFit * 0.35) + (taskType === "General task" ? 72 : 92) * 0.2);
-  const confidence = Math.min(0.98, 0.58 + (taskType === "General task" ? 0 : 0.2) + Math.min(input.length / 1000, 0.2));
-
+  const score = Math.round(58 + Math.min(24, input.length / 10) + (missing.length === 0 ? 15 : 6));
   return {
     enhancedPrompt,
+    provider: "deterministic",
     analysis: {
-      intent: input.trim(),
-      taskType,
-      objective: buildObjective(input.trim(), goal),
-      context,
-      constraints,
-      missing,
-      confidence: Number(confidence.toFixed(2)),
-      score,
-      changes,
+      intent: input.trim(), taskType, objective, context: [],
+      constraints: ["Preserve user intent", "Do not invent important facts"],
+      missing, confidence: Number(Math.min(0.92, 0.58 + input.length / 1200).toFixed(2)), score, changes,
     },
   };
+}
+
+export async function enhancePrompt(input: string, model: TargetModel, goal: Goal): Promise<EnhancementResult> {
+  if (!aiProviderConfigured()) return buildDeterministic(input, model, goal);
+
+  try {
+    const result = await enhanceWithAI(input, model, goal);
+    return {
+      enhancedPrompt: result.enhancedPrompt,
+      provider: "ai",
+      analysis: {
+        intent: input.trim(),
+        taskType: result.analysis.task,
+        objective: result.analysis.objective,
+        context: result.analysis.context,
+        constraints: result.analysis.constraints,
+        missing: result.analysis.missingContext,
+        confidence: result.analysis.confidence,
+        score: result.score,
+        changes: result.changes,
+      },
+    };
+  } catch (error) {
+    console.error("AI enhancement failed; using deterministic fallback.", error);
+    return buildDeterministic(input, model, goal);
+  }
 }
