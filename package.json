@@ -1,18 +1,21 @@
 {
   "name": "ai-enhancement-tool",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "lint": "next lint",
     "check": "tsc --noEmit"
   },
   "dependencies": {
+    "ai": "latest",
     "next": "latest",
     "react": "latest",
     "react-dom": "latest",
-    "lucide-react": "latest"
+    "lucide-react": "latest",
+    "zod": "latest"
   },
   "devDependencies": {
     "@types/node": "latest",
