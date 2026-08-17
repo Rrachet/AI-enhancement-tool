@@ -15,27 +15,29 @@ The goal is not to make prompts longer. The system should understand the user's 
 - Prompt enhancement without changing user intent
 - Model-aware optimization for GPT, Gemini, Claude, Cursor, and image-generation workflows
 - Prompt quality evaluation
-- Original vs enhanced comparison
 - Explainable enhancement changes
 - Adaptive clarification when important context is missing
-- Prompt history and export
+- Provider-independent AI service architecture
+- Production typechecking and build verification through GitHub Actions
 
-## Planned architecture
+## Current engine
+
+The first enhancement engine is deterministic by design. It provides a reliable baseline for intent classification, task detection, context-gap analysis, model guidance, prompt compilation, and quality scoring before a live AI provider is introduced.
 
 ```text
 User Prompt
     |
     v
-Intent Detection
+Intent / Task Detection
     |
     v
 Context & Constraint Analysis
     |
     v
-Task Framework Selection
+Framework Selection
     |
     v
-Model Adapter
+Model Guidance
     |
     v
 Prompt Compiler
@@ -44,17 +46,17 @@ Prompt Compiler
 Quality Evaluation
     |
     v
-Enhanced Prompt
+Enhanced Prompt + Analysis
 ```
 
 ## Initial stack
 
 - Next.js
 - TypeScript
-- Tailwind CSS
-- shadcn/ui
-- PostgreSQL + Prisma
-- Redis
+- React
+- Lucide React
+- PostgreSQL + Prisma (planned)
+- Redis (planned)
 - Provider-agnostic AI service layer
 
 ## Engineering principles
@@ -65,21 +67,33 @@ Enhanced Prompt
 4. Optimize for output quality, not prompt length.
 5. Keep model-specific behavior isolated behind adapters.
 6. Keep the interface simple enough for a first-time AI user.
+7. Build deterministic foundations before adding probabilistic AI behavior.
 
 ## Project status
 
-**Phase 0 — Repository foundation**
+**Phase 2 — Prompt intelligence engine**
 
-Next milestones:
+Completed:
 
-- [ ] Initialize Next.js + TypeScript application
-- [ ] Establish product UI system
-- [ ] Build prompt workspace
-- [ ] Add model and task selectors
-- [ ] Create enhancement engine interfaces
-- [ ] Add first AI provider adapter
-- [ ] Implement prompt quality evaluation
-- [ ] Add tests and CI
+- [x] Next.js + TypeScript application foundation
+- [x] Product UI system and prompt workspace
+- [x] Model and task selectors
+- [x] Deterministic enhancement engine
+- [x] Task and intent analysis
+- [x] Missing-context detection
+- [x] Model-aware prompt guidance
+- [x] Quality score and explainable changes
+- [x] Enhancement API endpoint
+- [x] GitHub Actions typecheck + production build
+
+Next:
+
+- [ ] Add real AI provider adapter
+- [ ] Replace deterministic classification with hybrid AI + rules
+- [ ] Add prompt quality benchmark suite
+- [ ] Add original vs enhanced comparison
+- [ ] Add prompt history and saved prompts
+- [ ] Add authentication and usage controls
 
 ## License
 
