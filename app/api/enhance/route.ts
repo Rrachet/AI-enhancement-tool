@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { enhancePrompt, type Goal, type TargetModel } from "@/lib/prompt-engine";
+import { enhancePrompt, type Goal, type TargetModel } from "../../../lib/prompt-engine";
 
 const models: TargetModel[] = ["ChatGPT", "Gemini", "Claude", "Cursor", "Midjourney", "Other"];
 const goals: Goal[] = ["Best answer", "Professional output", "Code", "Research", "Image", "Custom"];
