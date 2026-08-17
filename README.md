@@ -6,58 +6,85 @@ An intelligent prompt enhancement platform that transforms rough natural-languag
 
 **Say what you mean. AI does the engineering.**
 
-The goal is not to make prompts longer. The system should understand the user's intent, identify ambiguity and missing context, preserve the user's objective, and produce a prompt optimized for the selected AI workflow.
+The goal is not to make prompts longer. Enhance analyzes intent, detects missing context, applies task-specific guidance, adapts instructions to the selected AI workflow, and evaluates the resulting prompt.
 
-## Core capabilities
+## Current capabilities
 
 - Intent and task classification
 - Missing-context detection
 - Prompt enhancement without changing user intent
-- Model-aware optimization for GPT, Gemini, Claude, Cursor, and image-generation workflows
-- Prompt quality evaluation
+- Model-aware guidance for GPT, Gemini, Claude, Cursor, and image workflows
+- AI-powered enhancement through the Vercel AI Gateway
+- Deterministic fallback when no AI key is configured or the provider fails
+- Prompt quality scoring
 - Explainable enhancement changes
-- Adaptive clarification when important context is missing
-- Provider-independent AI service architecture
-- Production typechecking and build verification through GitHub Actions
+- Confidence and missing-context signals
+- Copy-ready enhanced prompt output
+- Production API route with validation and bounded runtime
 
-## Current engine
-
-The first enhancement engine is deterministic by design. It provides a reliable baseline for intent classification, task detection, context-gap analysis, model guidance, prompt compilation, and quality scoring before a live AI provider is introduced.
+## Enhancement pipeline
 
 ```text
 User Prompt
     |
     v
-Intent / Task Detection
+Input Validation
+    |
+    v
+Intent / Task Analysis
     |
     v
 Context & Constraint Analysis
     |
     v
-Framework Selection
+Task + Model Guidance
     |
     v
-Model Guidance
+AI Prompt Compiler
     |
     v
-Prompt Compiler
+Structured Result Normalization
     |
     v
-Quality Evaluation
+Quality Score + Explanation
     |
     v
-Enhanced Prompt + Analysis
+Enhanced Prompt
 ```
 
-## Initial stack
+## Architecture
 
-- Next.js
-- TypeScript
-- React
-- Lucide React
-- PostgreSQL + Prisma (planned)
-- Redis (planned)
-- Provider-agnostic AI service layer
+```text
+app/
+  api/enhance/        # Server-side enhancement endpoint
+  page.tsx            # Product workspace
+  globals.css         # Product UI system
+
+lib/
+  prompt-engine.ts    # Domain orchestration + safe fallback
+  ai/
+    provider.ts       # AI SDK provider boundary
+    prompts.ts        # Model/task-aware compiler instructions
+    types.ts          # Shared domain contracts
+
+docs/
+  ARCHITECTURE.md
+```
+
+The provider layer is intentionally separated from the product engine. The application can change AI providers or models without rewriting the UI or domain logic.
+
+## AI provider
+
+The project uses the Vercel AI Gateway through the AI SDK so the enhancement service can address multiple model providers through one interface.
+
+For local development, create `.env.local` from `.env.example` and set:
+
+```env
+AI_GATEWAY_API_KEY=your_key_here
+AI_ENHANCEMENT_MODEL=openai/gpt-5.5
+```
+
+Without a gateway key, the application continues to work using its deterministic enhancement engine.
 
 ## Engineering principles
 
@@ -66,34 +93,45 @@ Enhanced Prompt + Analysis
 3. Ask for clarification only when it materially improves the outcome.
 4. Optimize for output quality, not prompt length.
 5. Keep model-specific behavior isolated behind adapters.
-6. Keep the interface simple enough for a first-time AI user.
-7. Build deterministic foundations before adding probabilistic AI behavior.
+6. Validate AI output before returning it to the client.
+7. Keep the interface simple enough for a first-time AI user.
 
-## Project status
+## Development
 
-**Phase 2 — Prompt intelligence engine**
+```bash
+npm install
+npm run dev
+```
 
-Completed:
+Type-check with:
 
-- [x] Next.js + TypeScript application foundation
-- [x] Product UI system and prompt workspace
-- [x] Model and task selectors
+```bash
+npm run check
+```
+
+Build for production with:
+
+```bash
+npm run build
+```
+
+## Roadmap
+
+- [x] Product UI foundation
 - [x] Deterministic enhancement engine
-- [x] Task and intent analysis
-- [x] Missing-context detection
-- [x] Model-aware prompt guidance
-- [x] Quality score and explainable changes
-- [x] Enhancement API endpoint
-- [x] GitHub Actions typecheck + production build
-
-Next:
-
-- [ ] Add real AI provider adapter
-- [ ] Replace deterministic classification with hybrid AI + rules
-- [ ] Add prompt quality benchmark suite
-- [ ] Add original vs enhanced comparison
-- [ ] Add prompt history and saved prompts
-- [ ] Add authentication and usage controls
+- [x] Enhancement API
+- [x] AI provider abstraction
+- [x] AI-powered enhancement
+- [x] Deterministic fallback
+- [x] Quality scoring and explanations
+- [ ] Schema-native structured AI output
+- [ ] Prompt benchmark suite
+- [ ] Original vs enhanced diff view
+- [ ] Clarification flow for high-impact missing context
+- [ ] Prompt history and saved prompts
+- [ ] Model-specific optimization profiles
+- [ ] Authentication and usage limits
+- [ ] Observability and production analytics
 
 ## License
 
