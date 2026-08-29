@@ -1,121 +1,97 @@
 # AI Enhancement Tool
 
-An intelligent prompt enhancement platform that transforms rough natural-language instructions into clear, structured, model-aware prompts.
+> **An AI prompt-engineering product that turns rough intent into clearer, model-aware instructions.**
 
-## Product vision
+This project explores a practical product question: how can an AI system improve the quality of what a user asks without silently changing what they meant?
 
-**Say what you mean. AI does the engineering.**
+## Product flow
 
-The goal is not to make prompts longer. Enhance analyzes intent, detects missing context, applies task-specific guidance, adapts instructions to the selected AI workflow, and evaluates the resulting prompt.
+```text
+User intent
+    ↓
+Input validation
+    ↓
+Intent + task analysis
+    ↓
+Context + constraint detection
+    ↓
+Task / model guidance
+    ↓
+AI prompt compiler
+    ↓
+Output normalization
+    ↓
+Quality score + explanation
+    ↓
+Copy-ready prompt
+```
 
-## Current capabilities
+## What it does
 
 - Intent and task classification
 - Missing-context detection
-- Prompt enhancement without changing user intent
-- Model-aware guidance for GPT, Gemini, Claude, Cursor, and image workflows
+- Prompt enhancement while preserving intent
+- Model-aware guidance for GPT, Gemini, Claude, Cursor and image workflows
 - AI-powered enhancement through the Vercel AI Gateway
-- Deterministic fallback when no AI key is configured or the provider fails
+- Deterministic fallback when AI is unavailable
 - Prompt quality scoring
 - Explainable enhancement changes
 - Confidence and missing-context signals
-- Copy-ready enhanced prompt output
-- Production API route with validation and bounded runtime
-
-## Enhancement pipeline
-
-```text
-User Prompt
-    |
-    v
-Input Validation
-    |
-    v
-Intent / Task Analysis
-    |
-    v
-Context & Constraint Analysis
-    |
-    v
-Task + Model Guidance
-    |
-    v
-AI Prompt Compiler
-    |
-    v
-Structured Result Normalization
-    |
-    v
-Quality Score + Explanation
-    |
-    v
-Enhanced Prompt
-```
+- Validated server-side API route
 
 ## Architecture
 
 ```text
 app/
-  api/enhance/        # Server-side enhancement endpoint
-  page.tsx            # Product workspace
-  globals.css         # Product UI system
+├── api/enhance/        server-side enhancement endpoint
+├── page.tsx            product workspace
+└── globals.css         UI system
 
 lib/
-  prompt-engine.ts    # Domain orchestration + safe fallback
-  ai/
-    provider.ts       # AI SDK provider boundary
-    prompts.ts        # Model/task-aware compiler instructions
-    types.ts          # Shared domain contracts
+├── prompt-engine.ts    domain orchestration + fallback
+└── ai/
+    ├── provider.ts     provider boundary
+    ├── prompts.ts      model/task instructions
+    └── types.ts        domain contracts
 
 docs/
-  ARCHITECTURE.md
+└── ARCHITECTURE.md
 ```
 
-The provider layer is intentionally separated from the product engine. The application can change AI providers or models without rewriting the UI or domain logic.
-
-## AI provider
-
-The project uses the Vercel AI Gateway through the AI SDK so the enhancement service can address multiple model providers through one interface.
-
-For local development, create `.env.local` from `.env.example` and set:
-
-```env
-AI_GATEWAY_API_KEY=your_key_here
-AI_ENHANCEMENT_MODEL=openai/gpt-5.5
-```
-
-Without a gateway key, the application continues to work using its deterministic enhancement engine.
+The provider boundary keeps model-specific behaviour separate from the product engine. The UI and domain logic do not need to change when the model/provider changes.
 
 ## Engineering principles
 
 1. Preserve user intent.
-2. Never invent important facts silently.
-3. Ask for clarification only when it materially improves the outcome.
-4. Optimize for output quality, not prompt length.
-5. Keep model-specific behavior isolated behind adapters.
+2. Never silently invent important facts.
+3. Ask for clarification when it materially improves the result.
+4. Optimise for output quality, not prompt length.
+5. Isolate model-specific behaviour behind adapters.
 6. Validate AI output before returning it to the client.
-7. Keep the interface simple enough for a first-time AI user.
+7. Keep the product simple for first-time AI users.
 
-## Development
+## Local development
 
 ```bash
 npm install
 npm run dev
 ```
 
-Type-check with:
+Type-check:
 
 ```bash
 npm run check
 ```
 
-Build for production with:
+Production build:
 
 ```bash
 npm run build
 ```
 
-## Roadmap
+For AI-powered enhancement, create `.env.local` from `.env.example` and configure the gateway credentials. Without an AI key, the deterministic enhancement engine remains available.
+
+## Engineering roadmap
 
 - [x] Product UI foundation
 - [x] Deterministic enhancement engine
@@ -129,9 +105,12 @@ npm run build
 - [ ] Original vs enhanced diff view
 - [ ] Clarification flow for high-impact missing context
 - [ ] Prompt history and saved prompts
-- [ ] Model-specific optimization profiles
 - [ ] Authentication and usage limits
-- [ ] Observability and production analytics
+- [ ] Observability and product analytics
+
+## Product + engineering signal
+
+This project represents the intersection I care about most: **product UX + AI systems + engineering constraints**. The goal is not simply to call an LLM, but to design the workflow around validation, fallbacks, quality signals and a clear user outcome.
 
 ## License
 
